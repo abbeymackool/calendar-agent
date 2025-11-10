@@ -3,3 +3,7 @@ __pycache__/
 playwright/.auth/
 playwright/.cache/
 .env
+credentials_calendar.json
+“credentials_gmail.json”
+token.json
+.env
