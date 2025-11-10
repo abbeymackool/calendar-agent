@@ -11,3 +11,11 @@ token_calendar.json
 token_gmail.json
 .env
 credentials_gmail.json
+.env
+credentials_*.json
+token*.json
+*.pyc
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
