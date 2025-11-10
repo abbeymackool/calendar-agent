@@ -1,0 +1,25 @@
+[project]
+name = "calendar-agent"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2.8",
+  "typer>=0.12",
+  "google-api-python-client>=2.149.0",
+  "google-auth>=2.35.0",
+  "google-auth-oauthlib>=1.2.1",
+  "python-dotenv>=1.0.1",
+]
+
+[project.scripts]
+calendar-agent = "calendar_agent.cli:app"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["calendar_agent"]
+
+[tool.setuptools.package-data]
+calendar_agent = []
