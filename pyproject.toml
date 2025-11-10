@@ -9,6 +9,7 @@ dependencies = [
   "google-auth>=2.35.0",
   "google-auth-oauthlib>=1.2.1",
   "python-dotenv>=1.0.1",
+  "pydantic-settings>=2.4.0",
 ]
 
 [project.scripts]
@@ -18,8 +19,5 @@ calendar-agent = "calendar_agent.cli:app"
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["calendar_agent"]
-
-[tool.setuptools.package-data]
-calendar_agent = []
+[tool.setuptools.packages.find]
+include = ["calendar_agent*"]

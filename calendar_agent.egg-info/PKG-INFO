@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: calendar-agent
+Version: 0.1.0
+Requires-Python: >=3.10
+Requires-Dist: pydantic>=2.8
+Requires-Dist: typer>=0.12
+Requires-Dist: google-api-python-client>=2.149.0
+Requires-Dist: google-auth>=2.35.0
+Requires-Dist: google-auth-oauthlib>=1.2.1
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: pydantic-settings>=2.4.0

@@ -1,19 +1,21 @@
 import typer
-from calendar_agent.sync import run_airbnb, run_peerspace, run_gmail
+from calendar_agent.sync.run_airbnb import main as airbnb_main
+from calendar_agent.sync.run_peerspace import main as peerspace_main
+from calendar_agent.sync.run_gmail import main as gmail_main
 
 app = typer.Typer(help="Calendar Agent CLI")
 
 @app.command()
 def airbnb():
-    run_airbnb.main()
+    airbnb_main()
 
 @app.command()
 def peerspace():
-    run_peerspace.main()
+    peerspace_main()
 
 @app.command()
 def gmail():
-    run_gmail.main()
+    gmail_main()
 
 if __name__ == "__main__":
     app()

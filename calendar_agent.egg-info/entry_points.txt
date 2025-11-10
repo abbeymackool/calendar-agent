@@ -1,0 +1,2 @@
+[console_scripts]
+calendar-agent = calendar_agent.cli:app
