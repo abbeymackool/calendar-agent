@@ -126,6 +126,70 @@ def delete_events_by_private_prefix(cal_id: str, key: str, prefix: str,
             deleted += 1
     return deleted
 
+def get_event_by_date(cal_id, date_str):
+    """Return the first all-day event on a given date (if any)."""
+    s = _svc()
+    resp = s.events().list(
+        calendarId=cal_id,
+        timeMin=f"{date_str}T00:00:00Z",
+        timeMax=f"{date_str}T23:59:59Z",
+        singleEvents=True,
+        maxResults=10,
+    ).execute()
+    items = resp.get("items", [])
+    return items[0] if items else None
+
+
+def update_event_summary(cal_id, event_id, new_summary):
+    """Patch an existing event’s title."""
+    s = _svc()
+    s.events().patch(calendarId=cal_id,
+                     eventId=event_id,
+                     body={"summary": new_summary}).execute()
+
+# ---- Add to tools/gcal_tool.py ----
+
+def list_events(cal_id, time_min, time_max, max_results=2500):
+    s = _svc()
+    resp = s.events().list(
+        calendarId=cal_id,
+        timeMin=time_min,
+        timeMax=time_max,
+        singleEvents=True,
+        maxResults=max_results,
+    ).execute()
+    return resp.get("items", []) or []
+
+
+def find_all_day_event_on_date(cal_id, date_str):
+    """Return the first all-day event on a given local date (if any)."""
+    items = list_events(
+        cal_id,
+        f"{date_str}T00:00:00Z",
+        f"{date_str}T23:59:59Z",
+        max_results=50,
+    )
+    # Prefer true all-day events (have start.date)
+    for e in items:
+        if e.get("start", {}).get("date"):
+            return e
+    return items[0] if items else None
+
+
+def delete_events_by_private(cal_id, key, value):
+    """Delete all events whose extendedProperties.private[key] == value. Returns count."""
+    # Wide window to catch anything; adjust as needed.
+    items = list_events(cal_id, "1970-01-01T00:00:00Z", "2100-01-01T00:00:00Z")
+    s = _svc()
+    n = 0
+    for e in items:
+        priv = (e.get("extendedProperties", {}) or {}).get("private", {}) or {}
+        if priv.get(key) == value:
+            s.events().delete(calendarId=cal_id, eventId=e["id"]).execute()
+            n += 1
+    return n
+
+
 # ---------------- De-dupe / adopt helpers ----------------
 def _list_events_in_window(cal_id: str, start: datetime, end: datetime) -> List[Dict[str, Any]]:
     s = _svc()
