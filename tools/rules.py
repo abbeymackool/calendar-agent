@@ -1,16 +1,16 @@
 # tools/rules.py
-from datetime import datetime, timedelta, time
+from datetime import datetime, time, timedelta
 
 # --- Airbnb rules ---
-AIRBNB_CHECKIN  = time(16, 0)   # 4 PM
-AIRBNB_CHECKOUT = time(11, 0)   # 11 AM
-POST_EVENT_BUFFER_HOURS = 2     # minimum clean-up window after event/photoshoot
+AIRBNB_CHECKIN = time(16, 0)  # 4 PM
+AIRBNB_CHECKOUT = time(11, 0)  # 11 AM
+POST_EVENT_BUFFER_HOURS = 2  # minimum clean-up window after event/photoshoot
 
 
 def block_dates_for_event(start_dt, end_dt):
     """
     Determine which Airbnb calendar dates should be blocked for an event or shoot.
-    
+
     Rules:
       - Always block the *previous* day if any part of the booking happens before
         Airbnb’s standard 4 PM check-in.

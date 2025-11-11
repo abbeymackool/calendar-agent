@@ -1,14 +1,15 @@
 # tools/gcal_tool.py
 import os
-from datetime import datetime, timedelta, time
-from typing import Optional, Dict, Any, List
+from datetime import datetime, time, timedelta
+from typing import Any
 
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
 
 # ---------------- Core service ----------------
 def _svc():
@@ -27,9 +28,11 @@ def _svc():
             f.write(creds.to_json())
     return build("calendar", "v3", credentials=creds, cache_discovery=False)
 
+
 # ---------------- Basic helpers ----------------
 def get_cal_id(summary: str) -> str:
-    s = _svc(); page = None
+    s = _svc()
+    page = None
     while True:
         resp = s.calendarList().list(pageToken=page).execute()
         for it in resp.get("items", []):
@@ -40,34 +43,45 @@ def get_cal_id(summary: str) -> str:
             break
     raise RuntimeError(f"Calendar '{summary}' not found")
 
-def find_event_by_private(cal_id: str, key: str, value: str,
-                          time_min: Optional[datetime] = None,
-                          time_max: Optional[datetime] = None) -> Optional[Dict[str, Any]]:
+
+def find_event_by_private(
+    cal_id: str,
+    key: str,
+    value: str,
+    time_min: datetime | None = None,
+    time_max: datetime | None = None,
+) -> dict[str, Any] | None:
     s = _svc()
     if not time_min:
-        time_min = (datetime.now().astimezone() - timedelta(days=365))
+        time_min = datetime.now().astimezone() - timedelta(days=365)
     if not time_max:
-        time_max = (datetime.now().astimezone() + timedelta(days=365))
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=time_min.isoformat(),
-        timeMax=time_max.isoformat(),
-        singleEvents=True,
-        maxResults=2500
-    ).execute()
+        time_max = datetime.now().astimezone() + timedelta(days=365)
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=time_min.isoformat(),
+            timeMax=time_max.isoformat(),
+            singleEvents=True,
+            maxResults=2500,
+        )
+        .execute()
+    )
     for e in resp.get("items", []):
         priv = e.get("extendedProperties", {}).get("private", {})
         if priv.get(key) == value:
             return e
     return None
 
-def upsert_event(cal_id: str, body: Dict[str, Any], key: str, value: str) -> Dict[str, Any]:
+
+def upsert_event(cal_id: str, body: dict[str, Any], key: str, value: str) -> dict[str, Any]:
     s = _svc()
     body.setdefault("extendedProperties", {}).setdefault("private", {})[key] = value
     ex = find_event_by_private(cal_id, key, value)
     if ex:
         return s.events().patch(calendarId=cal_id, eventId=ex["id"], body=body).execute()
     return s.events().insert(calendarId=cal_id, body=body).execute()
+
 
 def delete_event_by_private(cal_id: str, key: str, value: str) -> bool:
     s = _svc()
@@ -77,17 +91,22 @@ def delete_event_by_private(cal_id: str, key: str, value: str) -> bool:
         return True
     return False
 
+
 def delete_all_events_by_private(cal_id: str, key: str, value: str) -> int:
     """Delete ALL events where extendedProperties.private[key] == value. Returns count."""
     s = _svc()
     deleted = 0
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=(datetime.now().astimezone() - timedelta(days=365)).isoformat(),
-        timeMax=(datetime.now().astimezone() + timedelta(days=365)).isoformat(),
-        singleEvents=True,
-        maxResults=2500
-    ).execute()
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=(datetime.now().astimezone() - timedelta(days=365)).isoformat(),
+            timeMax=(datetime.now().astimezone() + timedelta(days=365)).isoformat(),
+            singleEvents=True,
+            maxResults=2500,
+        )
+        .execute()
+    )
     for e in resp.get("items", []):
         priv = e.get("extendedProperties", {}).get("private", {})
         if priv.get(key) == value:
@@ -95,9 +114,14 @@ def delete_all_events_by_private(cal_id: str, key: str, value: str) -> int:
             deleted += 1
     return deleted
 
-def delete_events_by_private_prefix(cal_id: str, key: str, prefix: str,
-                                    time_min: Optional[datetime] = None,
-                                    time_max: Optional[datetime] = None) -> int:
+
+def delete_events_by_private_prefix(
+    cal_id: str,
+    key: str,
+    prefix: str,
+    time_min: datetime | None = None,
+    time_max: datetime | None = None,
+) -> int:
     """
     Delete ALL events where extendedProperties.private[key] startswith(prefix).
     Optionally limit to a time window [time_min, time_max].
@@ -105,18 +129,22 @@ def delete_events_by_private_prefix(cal_id: str, key: str, prefix: str,
     """
     s = _svc()
     if not time_min:
-        time_min = (datetime.now().astimezone() - timedelta(days=365))
+        time_min = datetime.now().astimezone() - timedelta(days=365)
     if not time_max:
-        time_max = (datetime.now().astimezone() + timedelta(days=365))
+        time_max = datetime.now().astimezone() + timedelta(days=365)
 
     deleted = 0
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=time_min.isoformat(),
-        timeMax=time_max.isoformat(),
-        singleEvents=True,
-        maxResults=2500
-    ).execute()
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=time_min.isoformat(),
+            timeMax=time_max.isoformat(),
+            singleEvents=True,
+            maxResults=2500,
+        )
+        .execute()
+    )
 
     for e in resp.get("items", []):
         priv = e.get("extendedProperties", {}).get("private", {})
@@ -126,16 +154,21 @@ def delete_events_by_private_prefix(cal_id: str, key: str, prefix: str,
             deleted += 1
     return deleted
 
+
 def get_event_by_date(cal_id, date_str):
     """Return the first all-day event on a given date (if any)."""
     s = _svc()
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=f"{date_str}T00:00:00Z",
-        timeMax=f"{date_str}T23:59:59Z",
-        singleEvents=True,
-        maxResults=10,
-    ).execute()
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=f"{date_str}T00:00:00Z",
+            timeMax=f"{date_str}T23:59:59Z",
+            singleEvents=True,
+            maxResults=10,
+        )
+        .execute()
+    )
     items = resp.get("items", [])
     return items[0] if items else None
 
@@ -143,21 +176,25 @@ def get_event_by_date(cal_id, date_str):
 def update_event_summary(cal_id, event_id, new_summary):
     """Patch an existing event’s title."""
     s = _svc()
-    s.events().patch(calendarId=cal_id,
-                     eventId=event_id,
-                     body={"summary": new_summary}).execute()
+    s.events().patch(calendarId=cal_id, eventId=event_id, body={"summary": new_summary}).execute()
+
 
 # ---- Add to tools/gcal_tool.py ----
 
+
 def list_events(cal_id, time_min, time_max, max_results=2500):
     s = _svc()
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=time_min,
-        timeMax=time_max,
-        singleEvents=True,
-        maxResults=max_results,
-    ).execute()
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=time_min,
+            timeMax=time_max,
+            singleEvents=True,
+            maxResults=max_results,
+        )
+        .execute()
+    )
     return resp.get("items", []) or []
 
 
@@ -191,26 +228,31 @@ def delete_events_by_private(cal_id, key, value):
 
 
 # ---------------- De-dupe / adopt helpers ----------------
-def _list_events_in_window(cal_id: str, start: datetime, end: datetime) -> List[Dict[str, Any]]:
+def _list_events_in_window(cal_id: str, start: datetime, end: datetime) -> list[dict[str, Any]]:
     s = _svc()
-    resp = s.events().list(
-        calendarId=cal_id,
-        timeMin=start.isoformat(),
-        timeMax=end.isoformat(),
-        singleEvents=True,
-        maxResults=2500
-    ).execute()
+    resp = (
+        s.events()
+        .list(
+            calendarId=cal_id,
+            timeMin=start.isoformat(),
+            timeMax=end.isoformat(),
+            singleEvents=True,
+            maxResults=2500,
+        )
+        .execute()
+    )
     return resp.get("items", []) or []
 
-from typing import Tuple  # keep this import
 
-def _day_bounds(day: datetime.date, tzinfo) -> Tuple[datetime, datetime]:
+def _day_bounds(day: datetime.date, tzinfo) -> tuple[datetime, datetime]:
     start = datetime.combine(day, time(0, 0), tzinfo=tzinfo)
     end = datetime.combine(day, time(23, 59, 59), tzinfo=tzinfo)
     return start, end
 
-def find_same_day_event_by_summary_location(cal_id: str, summary: str, location: Optional[str],
-                                            day: datetime.date, tzinfo) -> Optional[Dict[str, Any]]:
+
+def find_same_day_event_by_summary_location(
+    cal_id: str, summary: str, location: str | None, day: datetime.date, tzinfo
+) -> dict[str, Any] | None:
     """Find an existing manual or agent event on that calendar DAY with the same summary (and optional location)."""
     tmin, tmax = _day_bounds(day, tzinfo)
     for e in _list_events_in_window(cal_id, tmin, tmax):
@@ -224,22 +266,35 @@ def find_same_day_event_by_summary_location(cal_id: str, summary: str, location:
         return e
     return None
 
-def patch_event_times(cal_id: str, event: Dict[str, Any],
-                      start_dt: datetime, end_dt: datetime, tz: str,
-                      ensure_private: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+
+def patch_event_times(
+    cal_id: str,
+    event: dict[str, Any],
+    start_dt: datetime,
+    end_dt: datetime,
+    tz: str,
+    ensure_private: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Patch an event's time window and optionally ensure private extendedProperties."""
     s = _svc()
     body = {
         "start": {"dateTime": start_dt.isoformat(), "timeZone": tz},
-        "end":   {"dateTime": end_dt.isoformat(),   "timeZone": tz},
+        "end": {"dateTime": end_dt.isoformat(), "timeZone": tz},
     }
     if ensure_private:
         body.setdefault("extendedProperties", {}).setdefault("private", {}).update(ensure_private)
     return s.events().patch(calendarId=cal_id, eventId=event["id"], body=body).execute()
 
-def upsert_or_modify_buffer(cal_id: str, summary: str, location: str,
-                            desired_start: datetime, desired_end: datetime,
-                            booking_key: str, tz: str) -> Dict[str, Any]:
+
+def upsert_or_modify_buffer(
+    cal_id: str,
+    summary: str,
+    location: str,
+    desired_start: datetime,
+    desired_end: datetime,
+    booking_key: str,
+    tz: str,
+) -> dict[str, Any]:
     """
     - If an event with same summary/location exists on the same day: PATCH its start/end (adopt manual).
     - Else: insert a new one.
@@ -250,20 +305,24 @@ def upsert_or_modify_buffer(cal_id: str, summary: str, location: str,
     )
     ensure_priv = {"source": "agent", "type": "peerspace", "booking_key": booking_key}
     if existing:
-        return patch_event_times(cal_id, existing, desired_start, desired_end, tz, ensure_private=ensure_priv)
+        return patch_event_times(
+            cal_id, existing, desired_start, desired_end, tz, ensure_private=ensure_priv
+        )
     # no manual/agent one -> insert
     body = {
         "summary": summary,
         "location": location,
         "start": {"dateTime": desired_start.isoformat(), "timeZone": tz},
-        "end":   {"dateTime": desired_end.isoformat(),   "timeZone": tz},
+        "end": {"dateTime": desired_end.isoformat(), "timeZone": tz},
         "extendedProperties": {"private": ensure_priv},
     }
     # keep "booking_key" as idempotency key
     return upsert_event(cal_id, body, "booking_key", booking_key)
 
-def upsert_or_attach_all_day(cal_id: str, summary: str, date_str: str,
-                             private_keys: Dict[str, str]) -> Dict[str, Any]:
+
+def upsert_or_attach_all_day(
+    cal_id: str, summary: str, date_str: str, private_keys: dict[str, str]
+) -> dict[str, Any]:
     """
     Ensure there is ONE all-day event on date_str.
 
@@ -291,7 +350,7 @@ def upsert_or_attach_all_day(cal_id: str, summary: str, date_str: str,
             merged_priv = {**e.get("extendedProperties", {}).get("private", {}), **private_keys}
             body = {
                 "summary": summary,  # <-- rename to desired label (e.g., 'AM EVENT')
-                "extendedProperties": {"private": merged_priv}
+                "extendedProperties": {"private": merged_priv},
             }
             return s.events().patch(calendarId=cal_id, eventId=e["id"], body=body).execute()
 
@@ -299,7 +358,7 @@ def upsert_or_attach_all_day(cal_id: str, summary: str, date_str: str,
     body = {
         "summary": summary,
         "start": {"date": date_str},
-        "end":   {"date": (datetime.fromisoformat(date_str).date() + timedelta(days=1)).isoformat()},
+        "end": {"date": (datetime.fromisoformat(date_str).date() + timedelta(days=1)).isoformat()},
         "extendedProperties": {"private": private_keys},
     }
     # use ps_block_key if provided for idempotency; otherwise booking_key
