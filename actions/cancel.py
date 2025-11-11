@@ -17,19 +17,21 @@ Examples:
 """
 
 import sys
-from tools.gcal_tool import get_cal_id, delete_event_by_private
+
+from tools.gcal_tool import delete_event_by_private, get_cal_id
 
 # ---------------------------------------------------------------------------
 # GLOBAL CALENDAR IDENTIFIERS
 # ---------------------------------------------------------------------------
 
-CAL_DISCO = "Disco Bookings"      # Main floor space (Airbnb + Peerspace)
+CAL_DISCO = "Disco Bookings"  # Main floor space (Airbnb + Peerspace)
 CAL_UPSTAIRS = "Upstairs Bookings"  # Second-floor Airbnb listing
-CAL_BLOCK = "Block on Airbnb"     # All-day availability blocks for both listings
+CAL_BLOCK = "Block on Airbnb"  # All-day availability blocks for both listings
 
 # ---------------------------------------------------------------------------
 # CORE FUNCTION
 # ---------------------------------------------------------------------------
+
 
 def cancel_all_for_booking(booking_id: str, listing: str, verbose: bool = True) -> None:
     """
@@ -55,10 +57,10 @@ def cancel_all_for_booking(booking_id: str, listing: str, verbose: bool = True) 
 
         # These are the known extendedProperties keys for Disco-related events
         keys = [
-            ("type_booking", f"ab_res|{booking_id}"),           # main Airbnb booking
-            ("type_booking", f"ab_checkin_buffer|{booking_id}"),# check-in buffer
-            ("type_booking", f"ab_turnover|{booking_id}"),      # turnover buffer
-            ("ps_booking", booking_id),                         # Peerspace 1-hour buffer
+            ("type_booking", f"ab_res|{booking_id}"),  # main Airbnb booking
+            ("type_booking", f"ab_checkin_buffer|{booking_id}"),  # check-in buffer
+            ("type_booking", f"ab_turnover|{booking_id}"),  # turnover buffer
+            ("ps_booking", booking_id),  # Peerspace 1-hour buffer
         ]
 
         # Some events (especially Blocks) use generic "booking_id"
@@ -84,10 +86,13 @@ def cancel_all_for_booking(booking_id: str, listing: str, verbose: bool = True) 
         if extra_key:
             count = delete_event_by_private(cal_id, extra_key[0], extra_key[1])
             if verbose and count:
-                print(f"[{listing.upper()}] Deleted {count} events where {extra_key[0]}='{extra_key[1]}'")
+                print(
+                    f"[{listing.upper()}] Deleted {count} events where {extra_key[0]}='{extra_key[1]}'"
+                )
 
     if verbose:
         print(f"[{listing.upper()}] Cancellation complete for booking_id={booking_id}")
+
 
 # ---------------------------------------------------------------------------
 # CLI ENTRYPOINT

@@ -1,8 +1,10 @@
 import sys
 from datetime import datetime, timedelta
+
 from tools.gcal_tool import get_cal_id, upsert_event
 
 BLOCK = "Block on Airbnb"  # must match the exact calendar name in Google
+
 
 def run(title, *dates):
     block_id = get_cal_id(BLOCK)
@@ -16,6 +18,7 @@ def run(title, *dates):
         }
         upsert_event(block_id, body, "manual_block", f"{title}-{d}")
         print(f"Added all-day block on {d} ({title})")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

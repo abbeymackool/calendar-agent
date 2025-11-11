@@ -1,7 +1,10 @@
 import sys
-from tools.gcal_tool import get_cal_id, delete_all_events_by_private
+
+from tools.gcal_tool import delete_all_events_by_private, get_cal_id
+
 CAL_DISCO = "Disco Bookings"
 CAL_BLOCK = "Block on Airbnb"
+
 
 def run(booking_key: str):
     did = get_cal_id(CAL_DISCO)
@@ -11,8 +14,10 @@ def run(booking_key: str):
     # also remove per-day ps_block_key entries on Block on Airbnb
     # (they all start with booking_key + "|")
     from tools.gcal_tool import delete_events_by_private_prefix
+
     n3 = delete_events_by_private_prefix(bid, "ps_block_key", booking_key + "|")
     print(f"Removed {n1} from Disco, {n2+n3} from Block on Airbnb")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
