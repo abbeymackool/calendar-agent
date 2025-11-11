@@ -1,12 +1,14 @@
+from calendar_agent.config import require, settings
 from calendar_agent.models.booking import Booking
 from calendar_agent.models.event import CalendarEvent
-from calendar_agent.config import settings, require
+
 
 def calendar_for_space(space: str) -> str:
     if space == "Disco":
         return require("GOOGLE_CALENDAR_DISCO_ID", settings.google_calendar_disco_id)
     else:
         return require("GOOGLE_CALENDAR_UPSTAIRS_ID", settings.google_calendar_upstairs_id)
+
 
 def booking_to_event(b: Booking) -> CalendarEvent:
     cal_id = calendar_for_space(b.space)

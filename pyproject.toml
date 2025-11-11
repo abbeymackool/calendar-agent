@@ -1,23 +1,22 @@
-[project]
-name = "calendar-agent"
-version = "0.1.0"
-requires-python = ">=3.10"
-dependencies = [
-  "pydantic>=2.8",
-  "typer>=0.12",
-  "google-api-python-client>=2.149.0",
-  "google-auth>=2.35.0",
-  "google-auth-oauthlib>=1.2.1",
-  "python-dotenv>=1.0.1",
-  "pydantic-settings>=2.4.0",
-]
+[tool.black]
+line-length = 100
+target-version = ["py311"]
 
-[project.scripts]
-calendar-agent = "calendar_agent.cli:app"
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E","F","I","UP","B","C90","N","W","ASYNC","ANN","DTZ","EXE","G","RUF"]
+ignore = ["ANN101","ANN102"]  # allow missing self/cls annotations
+fix = true
 
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.ruff.lint.isort]
+known-first-party = ["calendar_agent"]
+combine-as-imports = true
 
-[tool.setuptools.packages.find]
-include = ["calendar_agent*"]
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]

@@ -1,6 +1,7 @@
-from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+
+from pydantic import BaseModel
+
 
 class CalendarEvent(BaseModel):
     uid: str
@@ -11,4 +12,4 @@ class CalendarEvent(BaseModel):
     calendar_id: str
     source: str
     source_external_id: str
-    location: Optional[str] = None
+    location: str | None = None

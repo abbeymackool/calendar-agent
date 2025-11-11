@@ -1,14 +1,16 @@
 # list_cals.py
 import os
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.oauth2.credentials import Credentials
+
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 
 # Use calendar-specific creds/token
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 CREDS_PATH = "credentials_calendar.json"
 TOKEN_PATH = "token_calendar.json"
+
 
 def svc():
     creds = None
@@ -23,6 +25,7 @@ def svc():
         with open(TOKEN_PATH, "w") as f:
             f.write(creds.to_json())
     return build("calendar", "v3", credentials=creds, cache_discovery=False)
+
 
 if __name__ == "__main__":
     s = svc()

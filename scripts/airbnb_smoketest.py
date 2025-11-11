@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+
 AUTH_PATH = "playwright/.auth/airbnb_state.json"
 LISTING_CAL_URL = "https://www.airbnb.com/hosting/listings/53003871/calendar"
 

@@ -19,3 +19,10 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+
+# Local secrets
+.env
+*credentials*.json
+token_*.json
+__pycache__/
+*.pyc
